@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Charge système — Progressbars</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:880px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1, h2 { margin:0 0 8px; font-size:1.2rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+
+    .row { display:grid; grid-template-columns: 140px 1fr 80px; gap:12px; align-items:center; margin:12px 0; }
+    .label { font-weight:600; }
+
+    /* Progressbar */
+    .bar {
+      height:18px; width:100%; border-radius:12px; overflow:hidden;
+      background: color-mix(in oklab, canvas 85%, canvastext 0%);
+      outline: 1px solid color-mix(in oklab, canvastext 15%, transparent);
+      position: relative;
+    }
+    .fill {
+      height:100%; width:0%;
+      background: linear-gradient(90deg, #37b24d, #1e90ff);
+      transition: width .35s ease;
+    }
+    /* Couleur selon charge (vert → orange → rouge) via data-level */
+    .fill[data-level="low"]  { background: linear-gradient(90deg, #37b24d, #66d17a); }
+    .fill[data-level="mid"]  { background: linear-gradient(90deg, #f59f00, #ffd43b); }
+    .fill[data-level="high"] { background: linear-gradient(90deg, #e03131, #ff6b6b); }
+
+    .val { text-align:right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+
+  <!-- LOAD AVERAGE -->
+  <section class="card">
+    <h1>Charge système (load average)</h1>
+    <div class="muted">Source : <code>/load</code> — jauges 0 → 4.0</div>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="row">
+      <div class="label">1 minute</div>
+      <div class="bar"><div id="f1" class="fill" data-level="low"></div></div>
+      <div class="val" id="v1">0.00</div>
+    </div>
+    <div class="row">
+      <div class="label">5 minutes</div>
+      <div class="bar"><div id="f5" class="fill" data-level="low"></div></div>
+      <div class="val" id="v5">0.00</div>
+    </div>
+    <div class="row">
+      <div class="label">15 minutes</div>
+      <div class="bar"><div id="f15" class="fill" data-level="low"></div></div>
+      <div class="val" id="v15">0.00</div>
+    </div>
+    <div class="muted" id="ts"></div>
+  </section>
+
+  <!-- CPU PER-CORE LOAD -->
+  <section class="card">
+    <h2>Charge CPU par cœur</h2>
+    <div class="muted">Source : <code>/cpu/load</code> — jauges 0 → 1.0 (par cœur)</div>
+  </section>
+
+  <section class="card" aria-live="polite" id="cpuCard">
+    <div id="cpuRows">
+      <!-- lignes CPU insérées dynamiquement -->
+    </div>
+    <div class="muted" id="tsCpu"></div>
+  </section>
+
+  <script>
+    // --- LOAD AVERAGE ---
+    var SCALE_MAX = 4.0;
+
+    function level(v, max) {
+      var r = max > 0 ? (v / max) : 0;
+      if (r < 0.5) return "low";
+      if (r < 0.8) return "mid";
+      return "high";
+    }
+
+    async function loadAvg() {
+      try {
+        const base = {{.ServerURL}};
+        const res = await fetch(base+'/load', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json(); // {load1, load5, load15}
+
+        const l1 = +d.load1 || 0, l5 = +d.load5 || 0, l15 = +d.load15 || 0;
+
+        const f1 = document.getElementById('f1');
+        const f5 = document.getElementById('f5');
+        const f15 = document.getElementById('f15');
+        const v1 = document.getElementById('v1');
+        const v5 = document.getElementById('v5');
+        const v15 = document.getElementById('v15');
+        const ts = document.getElementById('ts');
+
+        const w1 = Math.max(0, Math.min(100, (l1 / SCALE_MAX) * 100));
+        const w5 = Math.max(0, Math.min(100, (l5 / SCALE_MAX) * 100));
+        const w15 = Math.max(0, Math.min(100, (l15 / SCALE_MAX) * 100));
+
+        f1.style.width = w1 + '%';   f1.setAttribute('data-level', level(l1, SCALE_MAX));
+        f5.style.width = w5 + '%';   f5.setAttribute('data-level', level(l5, SCALE_MAX));
+        f15.style.width = w15 + '%'; f15.setAttribute('data-level', level(l15, SCALE_MAX));
+
+        v1.textContent = l1.toFixed(2);
+        v5.textContent = l5.toFixed(2);
+        v15.textContent = l15.toFixed(2);
+
+        ts.textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        ['f1','f5','f15'].forEach(id => { const el = document.getElementById(id); el.style.width='0%'; el.setAttribute('data-level','low'); });
+      }
+    }
+
+    // --- CPU PER-CORE ---
+    var CPU_SCALE_MAX = 1.0; // charge par cœur (0 → 1.0)
+
+    function ensureCpuBars(n) {
+      const wrap = document.getElementById('cpuRows');
+      if (wrap.dataset.count === String(n)) return; // déjà en place
+
+      let html = '';
+      for (let i = 0; i < n; i++) {
+        html += '<div class="row">'
+          + '<div class="label">CPU ' + i + '</div>'
+          + '<div class="bar"><div id="fc-' + i + '" class="fill" data-level="low"></div></div>'
+          + '<div class="val" id="vc-' + i + '">0.00</div>'
+          + '</div>';
+      }
+      wrap.innerHTML = html || '<div class="muted">Aucun cœur détecté</div>';
+      wrap.dataset.count = String(n);
+    }
+
+    async function loadCpu() {
+      try {        
+        const base = {{.ServerURL}};
+        const res = await fetch(base+'/cpu/load', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const arr = await res.json(); // ex: [1.01, 2.0, 0, 1.01]
+
+        const n = Array.isArray(arr) ? arr.length : 0;
+        ensureCpuBars(n);
+
+        for (let i = 0; i < n; i++) {
+          const v = +arr[i] || 0;
+          const w = Math.max(0, Math.min(100, (v / CPU_SCALE_MAX) * 100));
+          const f = document.getElementById('fc-' + i);
+          const t = document.getElementById('vc-' + i);
+          if (f) { f.style.width = w + '%'; f.setAttribute('data-level', level(v, CPU_SCALE_MAX)); }
+          if (t) { t.textContent = v.toFixed(2); }
+        }
+        document.getElementById('tsCpu').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        // reset visuel si erreur
+        const wrap = document.getElementById('cpuRows');
+        const n = +(wrap.dataset.count || 0);
+        for (let i = 0; i < n; i++) {
+          const f = document.getElementById('fc-' + i);
+          const t = document.getElementById('vc-' + i);
+          if (f) { f.style.width = '0%'; f.setAttribute('data-level','low'); }
+          if (t) { t.textContent = '0.00'; }
+        }
+      }
+    }
+
+    // Première charge
+    loadAvg();
+    loadCpu();
+    // Rafraîchissement à 250 ms
+    setInterval(function(){ loadAvg(); loadCpu(); }, 250);
+  </script>
+
+</body>
+</html>

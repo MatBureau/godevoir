@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Mémoire système</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:1000px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+    .row { display:grid; grid-template-columns: 160px 1fr 110px; gap:12px; align-items:center; margin:12px 0; }
+    .label { font-weight:600; }
+    .val { text-align:right; font-variant-numeric: tabular-nums; }
+
+    /* Progressbar */
+    .bar { height:18px; width:100%; border-radius:12px; overflow:hidden;
+           background: color-mix(in oklab, canvas 85%, canvastext 0%);
+           outline: 1px solid color-mix(in oklab, canvastext 15%, transparent); position:relative; }
+    .fill { height:100%; width:0%; transition:width .35s ease; }
+    .fill.ram  { background: linear-gradient(90deg, #37b24d, #1e90ff); }
+    .fill.swap { background: linear-gradient(90deg, #f59f00, #ff6b6b); }
+
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; }
+    .kv { padding:10px 12px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:12px; background:color-mix(in oklab, canvas 96%, canvastext 0%); }
+    .k { font-size:.85rem; opacity:.8; }
+    .v { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
+    .btn[disabled]{ opacity:.6; cursor:default; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Mémoire système</h1>
+    <div class="muted">Source : <code>/mem</code> — RAM & SWAP en temps quasi-réel</div>
+    <div class="toolbar" style="margin-top:8px">
+      <button id="refresh" class="btn" type="button">Rafraîchir</button>
+      <span id="ts" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="row">
+      <div class="label">RAM utilisée</div>
+      <div class="bar"><div id="ramFill" class="fill ram"></div></div>
+      <div class="val" id="ramPct">0.00%</div>
+    </div>
+    <div class="row">
+      <div class="label">SWAP utilisée</div>
+      <div class="bar"><div id="swapFill" class="fill swap"></div></div>
+      <div class="val" id="swapPct">0.00%</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="grid" id="summary">
+      <!-- Rempli dynamiquement -->
+    </div>
+  </section>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function fmtBytes(n) {
+      n = Number(n)||0;
+      var units = ['B','KiB','MiB','GiB','TiB','PiB'];
+      var i = 0;
+      while (n >= 1024 && i < units.length-1) { n /= 1024; i++; }
+      return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + ' ' + units[i];
+    }
+    function setBar(el, pct) {
+      var p = Math.max(0, Math.min(100, pct));
+      el.style.width = p.toFixed(2) + '%';
+    }
+    function kv(key, val) {
+      return '<div class="kv"><div class="k">'+esc(key)+'</div><div class="v">'+esc(val)+'</div></div>';
+    }
+
+    async function load() {
+      const ts = document.getElementById('ts');
+      const ramFill = document.getElementById('ramFill');
+      const swapFill = document.getElementById('swapFill');
+      const ramPct = document.getElementById('ramPct');
+      const swapPct = document.getElementById('swapPct');
+      const summary = document.getElementById('summary');
+
+      try {
+        const base = {{.ServerURL}};
+        const res = await fetch(base+'/mem', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const m = await res.json();
+
+        // RAM
+        const usedPercent = Number(m.usedPercent) || 0; // déjà fourni
+        setBar(ramFill, usedPercent);
+        ramPct.textContent = usedPercent.toFixed(2) + '%';
+
+        // SWAP (calculée)
+        const swapTotal = Number(m.swapTotal) || 0;
+        const swapFree  = Number(m.swapFree)  || 0;
+        const swapUsed  = swapTotal > 0 ? (swapTotal - swapFree) : 0;
+        const swapPer   = swapTotal > 0 ? (swapUsed / swapTotal) * 100 : 0;
+        setBar(swapFill, swapPer);
+        swapPct.textContent = swapPer.toFixed(2) + '%';
+
+        // Résumé
+        const items = [
+          ['RAM totale', fmtBytes(m.total)],
+          ['RAM utilisée', fmtBytes(m.used)],
+          ['RAM libre', fmtBytes(m.free)],
+          ['RAM disponible', fmtBytes(m.available)],
+          ['Cached', fmtBytes(m.cached)],
+          ['Buffers', fmtBytes(m.buffers)],
+          ['Active', fmtBytes(m.active)],
+          ['Inactive', fmtBytes(m.inactive)],
+          ['Slab', fmtBytes(m.slab)],
+          ['SReclaimable', fmtBytes(m.sreclaimable)],
+          ['SUnreclaim', fmtBytes(m.sunreclaim)],
+          ['Commit Limit', fmtBytes(m.commitLimit)],
+          ['Committed AS', fmtBytes(m.committedAS)],
+          ['Swap total', fmtBytes(m.swapTotal)],
+          ['Swap libre', fmtBytes(m.swapFree)],
+          ['Swap utilisée', fmtBytes(swapUsed)],
+          ['HugePage Size', fmtBytes(m.hugePageSize)],
+          ['Anon HugePages', fmtBytes(m.anonHugePages)]
+        ];
+
+        summary.innerHTML = items.map(([k,v]) => kv(k, v)).join('');
+        ts.textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+
+      } catch (e) {
+        summary.innerHTML = '<div class="kv"><div class="k">Erreur</div><div class="v">' + esc(e.message) + '</div></div>';
+      }
+    }
+
+    // Bouton
+    document.getElementById('refresh').addEventListener('click', async function(){
+      const btn = this, prev = btn.textContent;
+      btn.disabled = true; btn.textContent = '…';
+      try { await load(); }
+      finally { btn.disabled = false; btn.textContent = prev; }
+    });
+
+    load();
+    setInterval(load, 2000); // optionnel
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "node_id": "desktop",
+  "db_id": 3,
+  "table_id": 6,
+  "files": [
+    {
+      "id": 28,
+      "path": "desktop/dbs/metrics-3/system_disk_io-6/2025-09-04/14-50/0000000896.parquet",
+      "size_bytes": 7123,
+      "row_count": 105,
+      "chunk_time": 1756997400000000000,
+      "min_time": 1756997520132780389,
+      "max_time": 1756997760049761596
+    }
+  ],
+  "latest_snapshot_sequence_number": 1,
+  "parquet_size_bytes": 7123,
+  "row_count": 105,
+  "min_time": 1756997520132780389,
+  "max_time": 1756997760049761596
+}

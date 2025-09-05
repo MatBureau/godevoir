@@ -1,0 +1,84 @@
+# Lancer la base de données
+
+```bash
+# Récupère l'image (multi-arch)
+docker pull influxdb:3-core
+
+# Démarre le serveur (port HTTP 8181, données persistées)
+docker run -d --name influxdb3 \
+  -p 8181:8181 \
+  -v influxdb3-data:/var/lib/influxdb3/data \
+  influxdb:3-core
+  ```
+
+# Récupération des données de connexion
+
+## Récupération du token
+
+  ```bash
+  # Crée un token admin et l’affiche UNE SEULE FOIS — copiez-le !
+docker exec -it influxdb3 influxdb3 create token --admin
+# => notez la valeur affichée, par ex. :
+#    Token: apiv3_I7fcYs7KSQIMDe_nt6LhhIqPrJoLzsr8iqt6LhKvpbYY2HA7nmBzISxF7pVLJV4rCWLdPBjtAt4XHWhCIBOXLw
+```
+
+## Création de la base de données
+
+```bash
+TOKEN="<le_token_admin>"
+docker exec -it influxdb3 influxdb3 create database load --token "$TOKEN"
+```
+
+## Création d'un token persistant
+
+- Génération : 
+
+```bash
+docker run --rm -v "/tmp:/work" influxdb:3-core influxdb3 create token --admin --name "admin-offline" --expiry 365d --offline --output-file /work/admin-token.json
+```
+
+- Exemple de fichier généré : `admin-token.json`
+
+```yaml
+{
+  "token": "apiv3_I7fcYs7KSQIMDe_nt6LhhIqPrJoLzsr8iqt6LhKvpbYY2HA7nmBzISxF7pVLJV4rCWLdPBjtAt4XHWhCIBOXLw",
+  "name": "admin-offline",
+  "expiry_millis": 1788453581045
+}
+```
+
+- Démarrage à l'aide du fichier 
+
+```yml
+    ...
+    volumes:
+      ...
+      # Déclaration du fichier token
+      - ./admin-token.json:/run/admin-token.json:ro
+    # Utilisation du fichier token --admin-token-file
+    command: --object-store file --data-dir /var/lib/influxdb3 --admin-token-file /run/admin-token.json --node-id desktop --http-bind 0.0.0.0:8181
+    ...
+```
+
+# Manipulation InffluxDB en ligne de commande
+
+## Liste des BDD
+
+```bash
+docker exec -it docker-influxdb-1 influxdb3 show databases  --token "$TOKEN"
+```
+
+## Liste des tables de la BDD load
+
+```bash
+docker exec -e INFLUXDB3_AUTH_TOKEN="$TOKEN" docker-influxdb-1 influxdb3 query --database load "SHOW TABLES"
+```
+
+Cherchez les tables **iox**
+
+# Connexion golang
+
+- Host/URL : http://localhost:8181
+- Database : load
+- Token : le token admin généré (ou un autre token si vous en créez un dédié)
+

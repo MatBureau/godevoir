@@ -1,0 +1,1 @@
+idb3.004.lްN{"catalog_batch":{"Database":{"time_ns":1756933512618969969,"database_id":2,"database_name":"metrics","ops":[{"DisableTrigger":{"db_id":2,"db_name":"metrics","trigger_id":2,"trigger_name":"metrics"}}]}},"sequence_number":22}

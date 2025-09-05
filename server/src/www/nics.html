@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Débits réseau (temps réel)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:980px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; }
+    th { font-weight:600; }
+    .muted { opacity:.75; font-size:.9rem; }
+    .badge { display:inline-block; padding:.15rem .45rem; border-radius:.5rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); }
+    .addr { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
+    .right { text-align:right; }
+    .small { font-size:.9rem; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Interfaces réseau actives (non-loopback)</h1>
+    <div class="muted">Rafraîchissement toutes les 2 secondes · valeurs moyennées sur ~1 s</div>
+  </section>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Interface</th>
+          <th>Adresses</th>
+          <th class="right">Rx (Mb/s)</th>
+          <th class="right">Tx (Mb/s)</th>
+          <th class="right small">MTU</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="5" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    async function load() {
+      const body = document.getElementById('tbody');
+      try {
+        const base = {{.ServerURL}};
+        const res  = await fetch(base + '/nics');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          body.innerHTML = '<tr><td colspan="5" class="muted">Aucune interface active</td></tr>';
+          return;
+        }
+
+        body.innerHTML = data.map(function(n) {
+          var addrs = (n.addr || []).map(function(a) {
+            return '<span class="addr">' + a + '</span>';
+          }).join('<br>');
+
+          return '<tr>'
+            + '<td><span class="badge">' + n.name + '</span></td>'
+            + '<td>' + addrs + '</td>'
+            + '<td class="right">' + ((n.rx_mbps || 0).toFixed(3)) + '</td>'
+            + '<td class="right">' + ((n.tx_mbps || 0).toFixed(3)) + '</td>'
+            + '<td class="right small">' + (n.mtu || '') + '</td>'
+            + '</tr>';
+        }).join('');
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="5" class="muted">Erreur: ' + e.message + '</td></tr>';
+      }
+    }
+
+    load();
+    setInterval(load, 2000);
+  </script>
+
+</body>
+</html>

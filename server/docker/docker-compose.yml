@@ -1,0 +1,41 @@
+services:
+  influxdb: 
+    image: influxdb:3-core
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./influxdb/datas:/var/lib/influxdb3
+      - ./influxdb/config/admin-token.json:/run/admin-token.json:ro
+    command: --object-store file --data-dir /var/lib/influxdb3 --admin-token-file /run/admin-token.json --node-id desktop --http-bind 0.0.0.0:8181
+  explorer:
+    image: influxdata/influxdb3-ui:latest  
+    restart: always
+    command: --mode=admin    
+    depends_on:
+      - influxdb    
+    ports:
+      - "8888:80"
+    volumes:
+      - ./explorer/config:/app-root/config:ro
+      - ./explorer/datas:/db:rw
+  grafana:
+    image: grafana/grafana:main
+    user: "1000:1000" 
+    restart: always
+    network_mode: "host"
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER
+      - GF_SECURITY_ADMIN_PASSWORD
+      - INFLUX_TOKEN
+    volumes:
+      - ./grafana/datas:/var/lib/grafana:rw
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+  # A mettre pour la production
+  # web:
+  #   image: web:latest
+  #   restart: always
+  #   network_mode: "host"
+  #   depends_on:
+  #     - influxdb

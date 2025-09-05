@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Infos CPU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:1200px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; vertical-align:top; }
+    th { font-weight:600; }
+    .right { text-align:right; }
+    .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
+    .nowrap { white-space:nowrap; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    input[type="text"] { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
+    .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
+    .btn[disabled]{ opacity:.6; cursor:default; }
+    .pill { display:inline-block; padding:.12rem .45rem; border-radius:.75rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.8rem; margin:2px; }
+    .badges { display:flex; flex-wrap:wrap; gap:4px; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Informations CPU</h1>
+    <div class="muted">Source : <code>/cpu</code> — colonnes : CPU, Vendor, CoreID, Cores, Model, MHz, Cache, Flags</div>
+    <div class="toolbar" style="margin-top:8px">
+      <label>Filtrer : <input id="q" type="text" placeholder="vendor, coreId, model, flag…"></label>
+      <button id="refresh" class="btn" type="button">Rafraîchir</button>
+      <span id="ts" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="right">CPU</th>
+          <th>Vendor</th>
+          <th>CoreID</th>
+          <th class="right">Cores</th>
+          <th>Model</th>
+          <th class="right">MHz</th>
+          <th class="right">Cache</th>
+          <th>Flags</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="8" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function renderFlags(arr) {
+      if (!Array.isArray(arr) || arr.length === 0) return '';
+      return '<div class="badges">' + arr.map(function(f){
+        return '<span class="pill">'+esc(f)+'</span>';
+      }).join('') + '</div>';
+    }
+    function renderRows(items, q) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return '<tr><td colspan="8" class="muted">Aucune donnée</td></tr>';
+      }
+      q = (q||'').toLowerCase();
+      var out = [];
+      for (var i=0;i<items.length;i++) {
+        var x = items[i]||{};
+        var hay = [x.vendorId, x.coreId, x.model, x.modelName, (x.flags||[]).join(' ')].join(' ');
+        if (q && hay.toLowerCase().indexOf(q) === -1) continue;
+
+        out.push(
+          '<tr>'
+          + '<td class="right mono">' + esc(x.cpu) + '</td>'
+          + '<td>' + esc(x.vendorId || '') + '</td>'
+          + '<td class="mono">' + esc(x.coreId || '') + '</td>'
+          + '<td class="right mono">' + esc(x.cores || 0) + '</td>'
+          + '<td class="mono">' + esc(x.model || x.modelName || '') + '</td>'
+          + '<td class="right mono">' + esc(x.mhz || 0) + '</td>'
+          + '<td class="right mono">' + esc(x.cacheSize || 0) + '</td>'
+          + '<td>' + renderFlags(x.flags) + '</td>'
+          + '</tr>'
+        );
+      }
+      if (out.length === 0) {
+        return '<tr><td colspan="8" class="muted">Aucun CPU ne correspond au filtre</td></tr>';
+      }
+      return out.join('');
+    }
+
+    var DATA = [];
+    async function load() {
+      var body = document.getElementById('tbody');
+      try {
+        const base = {{.ServerURL}};
+        var res = await fetch(base+'/cpu', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        DATA = await res.json();
+        applyFilter();
+        document.getElementById('ts').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="8" class="muted">Erreur: ' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    function applyFilter() {
+      var q = document.getElementById('q').value;
+      document.getElementById('tbody').innerHTML = renderRows(DATA, q);
+    }
+
+    document.getElementById('q').addEventListener('input', applyFilter);
+    document.getElementById('refresh').addEventListener('click', async function(){
+      var btn = this, prev = btn.textContent;
+      btn.disabled = true; btn.textContent = '…';
+      try { await load(); }
+      finally { btn.disabled = false; btn.textContent = prev; }
+    });
+
+    load();
+    // setInterval(load, 5000); // optionnel
+  </script>
+
+</body>
+</html>

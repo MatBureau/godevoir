@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Volumes & points de montage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:980px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; vertical-align:top; }
+    th { font-weight:600; }
+    .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
+    .badges { display:flex; gap:6px; flex-wrap:wrap; }
+    .badge { display:inline-block; padding:.12rem .45rem; border-radius:.5rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.85rem; }
+    .right { text-align:right; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Volumes et points de montage</h1>
+    <div class="muted">Source: <code>/disks</code> · affiche <code>device</code>, <code>mountpoint</code>, <code>fstype</code>, <code>opts</code></div>
+  </section>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Device</th>
+          <th>Mountpoint</th>
+          <th>Type</th>
+          <th>Options</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="4" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function renderRows(items) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return '<tr><td colspan="4" class="muted">Aucune donnée</td></tr>';
+      }
+      return items.map(function(x){
+        var opts = Array.isArray(x.opts) ? x.opts : [];
+        var optsHtml = '<div class="badges">' + opts.map(function(o){
+          return '<span class="badge">'+ esc(o) +'</span>';
+        }).join('') + '</div>';
+
+        return '<tr>'
+          + '<td class="mono">'+ esc(x.device || '') +'</td>'
+          + '<td class="mono">'+ esc(x.mountpoint || '') +'</td>'
+          + '<td>'+ esc(x.fstype || '') +'</td>'
+          + '<td>'+ optsHtml +'</td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    async function load() {
+      var body = document.getElementById('tbody');
+      try {
+        const base = {{.ServerURL}};
+        var res = await fetch(base+'/disks');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+        body.innerHTML = renderRows(data);
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="4" class="muted">Erreur: ' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    load();
+    // Si tu veux rafraîchir périodiquement, dé-commente la ligne suivante :
+    // setInterval(load, 5000);
+  </script>
+
+</body>
+</html>

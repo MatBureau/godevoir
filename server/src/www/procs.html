@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Processus système</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:1200px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; vertical-align:top; }
+    th { font-weight:600; }
+    .right { text-align:right; }
+    .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
+    .nowrap { white-space:nowrap; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    input[type="text"], select { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
+    .pill { display:inline-block; padding:.1rem .45rem; border-radius:.75rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.85rem; }
+    .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
+    .btn[disabled]{ opacity:.6; cursor:default; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Processus système</h1>
+    <div class="muted">Source : <code>/procs</code> — colonnes : PID, Nom, Statut, Utilisateur, Threads, Mémoire (RSS/VMS), Créé, Cmdline</div>
+    <div class="toolbar" style="margin-top:8px">
+      <label>Filtrer : <input id="q" type="text" placeholder="nom, utilisateur, cmdline…"></label>
+      <label>Statut :
+        <select id="status">
+          <option value="">(tous)</option>
+          <option value="R">R (running)</option>
+          <option value="S">S (sleeping)</option>
+          <option value="I">I (idle)</option>
+          <option value="D">D (uninterruptible)</option>
+          <option value="T">T (stopped)</option>
+          <option value="Z">Z (zombie)</option>
+        </select>
+      </label>
+      <button id="refresh" class="btn" type="button">Rafraîchir</button>
+      <span id="count" class="pill">0 éléments</span>
+      <span id="ts" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="right">PID</th>
+          <th>Nom</th>
+          <th>Statut</th>
+          <th>Utilisateur</th>
+          <th class="right">Threads</th>
+          <th class="right">RSS</th>
+          <th class="right">VMS</th>
+          <th class="nowrap">Créé</th>
+          <th>Cmdline</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="9" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function fmtBytes(n) {
+      n = Number(n)||0;
+      var units = ['B','KiB','MiB','GiB','TiB'];
+      var i = 0;
+      while (n >= 1024 && i < units.length-1) { n /= 1024; i++; }
+      return n.toFixed(n<10?2: n<100?1:0) + ' ' + units[i];
+    }
+    function fmtTimeMs(ms) {
+      var d = new Date(Number(ms)||0);
+      if (!ms) return '';
+      return d.toLocaleString();
+    }
+    function renderRows(items, q, st) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return '<tr><td colspan="9" class="muted">Aucune donnée</td></tr>';
+      }
+      q = (q||'').toLowerCase();
+      var out = [];
+      for (var i=0;i<items.length;i++) {
+        var x = items[i]||{};
+        var hay = (x.name||'')+' '+(x.username||'')+' '+(x.cmdline||'');
+        if (q && hay.toLowerCase().indexOf(q) === -1) continue;
+        if (st && (x.status||'') !== st) continue;
+
+        out.push(
+          '<tr>'
+          + '<td class="right mono">' + esc(x.pid) + '</td>'
+          + '<td class="mono">' + esc(x.name||'') + '</td>'
+          + '<td class="nowrap"><span class="pill">' + esc(x.status||'') + '</span></td>'
+          + '<td>' + esc(x.username||'') + '</td>'
+          + '<td class="right mono">' + esc(x.threads||'') + '</td>'
+          + '<td class="right mono">' + esc(fmtBytes(x.memory_rss)) + '</td>'
+          + '<td class="right mono">' + esc(fmtBytes(x.memory_vms)) + '</td>'
+          + '<td class="nowrap mono">' + esc(fmtTimeMs(x.create_time)) + '</td>'
+          + '<td class="mono">' + esc(x.cmdline||'') + '</td>'
+          + '</tr>'
+        );
+      }
+      if (out.length === 0) {
+        return '<tr><td colspan="9" class="muted">Aucun processus ne correspond aux filtres</td></tr>';
+      }
+      document.getElementById('count').textContent = out.length + ' éléments';
+      return out.join('');
+    }
+
+    var DATA = [];
+    async function load() {
+      var body = document.getElementById('tbody');
+      try {
+        const base = {{.ServerURL}};
+        var res = await fetch(base+'/procs', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        DATA = await res.json();
+        applyFilters();
+        document.getElementById('ts').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="9" class="muted">Erreur: ' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    function applyFilters() {
+      var q = document.getElementById('q').value;
+      var st = document.getElementById('status').value;
+      document.getElementById('tbody').innerHTML = renderRows(DATA, q, st);
+    }
+
+    // Filtres live
+    document.getElementById('q').addEventListener('input', applyFilters);
+    document.getElementById('status').addEventListener('change', applyFilters);
+
+    // Bouton Rafraîchir
+    document.getElementById('refresh').addEventListener('click', async function(){
+      var btn = this;
+      var prev = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try { await load(); }
+      finally { btn.disabled = false; btn.textContent = prev; }
+    });
+
+    // Première charge
+    load();
+
+  </script>
+
+</body>
+</html>
