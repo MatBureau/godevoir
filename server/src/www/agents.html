@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Agents système</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .card { max-width:1200px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    h1 { margin:0 0 8px; font-size:1.25rem; }
+    h2 { margin:16px 0 8px; font-size:1.1rem; }
+    .muted { opacity:.75; font-size:.9rem; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .pill { display:inline-block; padding:.1rem .45rem; border-radius:.75rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.85rem; }
+    .status-online { background: color-mix(in oklab, green 35%, canvas); border-color: color-mix(in oklab, green 40%, transparent); color: green; }
+    .status-offline { background: color-mix(in oklab, red 35%, canvas); border-color: color-mix(in oklab, red 40%, transparent); color: red; }
+    .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
+    .btn[disabled]{ opacity:.6; cursor:default; }
+    .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
+    .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; }
+    .agent-card { border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:12px; padding:16px; background:color-mix(in oklab, canvas 95%, canvastext 0%); }
+    .agent-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .agent-host { font-weight: 600; font-family: monospace; }
+    .metric { margin: 8px 0; padding: 8px; background: color-mix(in oklab, canvas 90%, canvastext 0%); border-radius: 8px; }
+    .metric-title { font-weight: 600; margin-bottom: 4px; }
+    .metric-value { font-family: monospace; font-size: 0.9rem; }
+    .error-msg { color: red; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <section class="card">
+    <h1>Agents distribués</h1>
+    <div class="muted">Vue d'ensemble des agents déployés sur les serveurs distants</div>
+    <div class="toolbar" style="margin-top:8px">
+      <button id="refresh" class="btn" type="button">Rafraîchir</button>
+      <span id="count" class="pill">0 agents</span>
+      <span id="ts" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div id="agents-container">
+      <div class="muted">Chargement des agents...</div>
+    </div>
+  </section>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    
+    function formatBytes(n) {
+      n = Number(n)||0;
+      var units = ['B','KiB','MiB','GiB','TiB'];
+      var i = 0;
+      while (n >= 1024 && i < units.length-1) { n /= 1024; i++; }
+      return n.toFixed(n<10?2: n<100?1:0) + ' ' + units[i];
+    }
+    
+    function formatCPU(cpu) {
+      if (!Array.isArray(cpu) || cpu.length === 0) return 'N/A';
+      var total = cpu.reduce((sum, c) => sum + (c.percent || 0), 0) / cpu.length;
+      return total.toFixed(1) + '%';
+    }
+    
+    function formatMemory(mem) {
+      if (!mem) return 'N/A';
+      var used = mem.used || 0;
+      var total = mem.total || 0;
+      var percent = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
+      return formatBytes(used) + ' / ' + formatBytes(total) + ' (' + percent + '%)';
+    }
+    
+    function formatLoad(load) {
+      if (!load) return 'N/A';
+      return (load.load1 || 0).toFixed(2) + ' / ' + (load.load5 || 0).toFixed(2) + ' / ' + (load.load15 || 0).toFixed(2);
+    }
+    
+    function formatProcCount(procs) {
+      if (!Array.isArray(procs)) return 'N/A';
+      return procs.length + '+ processus';
+    }
+    
+    function renderAgent(agent) {
+      var statusClass = agent.status === 'online' ? 'status-online' : 'status-offline';
+      var errorHtml = agent.error ? '<div class="error-msg">Erreur: ' + esc(agent.error) + '</div>' : '';
+      
+      var metricsHtml = '';
+      if (agent.status === 'online') {
+        metricsHtml = 
+          '<div class="metric">' +
+            '<div class="metric-title">CPU</div>' +
+            '<div class="metric-value">' + formatCPU(agent.cpu) + '</div>' +
+          '</div>' +
+          '<div class="metric">' +
+            '<div class="metric-title">Mémoire</div>' +
+            '<div class="metric-value">' + formatMemory(agent.memory) + '</div>' +
+          '</div>' +
+          '<div class="metric">' +
+            '<div class="metric-title">Charge système</div>' +
+            '<div class="metric-value">' + formatLoad(agent.load) + '</div>' +
+          '</div>' +
+          '<div class="metric">' +
+            '<div class="metric-title">Processus</div>' +
+            '<div class="metric-value">' + formatProcCount(agent.procs) + '</div>' +
+          '</div>';
+      }
+      
+      return '<div class="agent-card">' +
+        '<div class="agent-header">' +
+          '<div class="agent-host">' + esc(agent.host) + '</div>' +
+          '<span class="pill ' + statusClass + '">' + esc(agent.status) + '</span>' +
+        '</div>' +
+        errorHtml +
+        metricsHtml +
+        '<div class="muted" style="margin-top:12px;">Dernière vérification: ' + new Date(agent.last_seen).toLocaleTimeString() + '</div>' +
+      '</div>';
+    }
+    
+    function renderAgents(agents) {
+      if (!Array.isArray(agents) || agents.length === 0) {
+        return '<div class="muted">Aucun agent configuré</div>';
+      }
+      
+      var onlineCount = agents.filter(a => a.status === 'online').length;
+      document.getElementById('count').textContent = onlineCount + '/' + agents.length + ' agents en ligne';
+      
+      var html = '<div class="agent-grid">';
+      for (var i = 0; i < agents.length; i++) {
+        html += renderAgent(agents[i]);
+      }
+      html += '</div>';
+      
+      return html;
+    }
+    
+    async function loadAgents() {
+      var container = document.getElementById('agents-container');
+      try {
+        var res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var agents = await res.json();
+        
+        container.innerHTML = renderAgents(agents);
+        document.getElementById('ts').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        container.innerHTML = '<div class="muted">Erreur: ' + esc(e.message) + '</div>';
+      }
+    }
+    
+    // Bouton Rafraîchir
+    document.getElementById('refresh').addEventListener('click', async function(){
+      var btn = this;
+      var prev = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try { 
+        await loadAgents(); 
+      }
+      finally { 
+        btn.disabled = false; 
+        btn.textContent = prev; 
+      }
+    });
+    
+    // Première charge
+    loadAgents();
+    
+    // Auto-refresh toutes les 30 secondes
+    setInterval(loadAgents, 30000);
+  </script>
+
+</body>
+</html>
