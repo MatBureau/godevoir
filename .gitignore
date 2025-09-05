@@ -1,1 +1,4 @@
-*.wal
+./server/docker/influxdb/datas/desktop/wal/*.wal
+
+
+server/docker/influxdb/datas/desktop/wal/*.wal
