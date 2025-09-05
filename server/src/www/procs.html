@@ -7,11 +7,25 @@
   <style>
     :root { color-scheme: light dark; }
     body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
-    .card { max-width:1200px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
+    .card { max-width:1600px; margin:0 auto 16px; padding:16px 20px; border:1px solid color-mix(in oklab, canvastext 15%, transparent); border-radius:16px; background:color-mix(in oklab, canvas 92%, canvastext 0%); box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent); }
     h1 { margin:0 0 8px; font-size:1.25rem; }
     .muted { opacity:.75; font-size:.9rem; }
-    table { width:100%; border-collapse:collapse; }
-    th, td { padding:8px 10px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; vertical-align:top; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { padding:10px 12px; border-bottom:1px solid color-mix(in oklab, canvastext 12%, transparent); text-align:left; vertical-align:top; }
+    .col-pid { width:70px; }
+    .col-nom { width:140px; }
+    .col-statut { width:90px; }
+    .col-user { width:120px; }
+    .col-threads { width:80px; }
+    .col-rss { width:90px; }
+    .col-vms { width:90px; }
+    .col-cree { width:150px; }
+    .col-action { width:80px; }
+    .col-cmdline { width:400px; max-width:400px; overflow-x:auto; overflow-y:hidden; white-space:nowrap; }
+    .col-cmdline::-webkit-scrollbar { height:6px; }
+    .col-cmdline::-webkit-scrollbar-track { background:color-mix(in oklab, canvas 90%, canvastext 0%); border-radius:3px; }
+    .col-cmdline::-webkit-scrollbar-thumb { background:color-mix(in oklab, canvastext 30%, transparent); border-radius:3px; }
+    .col-cmdline::-webkit-scrollbar-thumb:hover { background:color-mix(in oklab, canvastext 40%, transparent); }
     th { font-weight:600; }
     .right { text-align:right; }
     .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; }
@@ -21,6 +35,9 @@
     .pill { display:inline-block; padding:.1rem .45rem; border-radius:.75rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.85rem; }
     .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
     .btn[disabled]{ opacity:.6; cursor:default; }
+    .btn-danger { background: color-mix(in oklab, red 35%, canvas); border-color: color-mix(in oklab, red 40%, transparent); }
+    .btn-danger:hover { background: color-mix(in oklab, red 45%, canvas); }
+    .btn-small { padding:3px 8px; font-size:.8rem; }
   </style>
 </head>
 <body>
@@ -53,19 +70,20 @@
     <table>
       <thead>
         <tr>
-          <th class="right">PID</th>
-          <th>Nom</th>
-          <th>Statut</th>
-          <th>Utilisateur</th>
-          <th class="right">Threads</th>
-          <th class="right">RSS</th>
-          <th class="right">VMS</th>
-          <th class="nowrap">Créé</th>
-          <th>Cmdline</th>
+          <th class="right col-pid">PID</th>
+          <th class="col-nom">Nom</th>
+          <th class="col-statut">Statut</th>
+          <th class="col-user">Utilisateur</th>
+          <th class="right col-threads">Threads</th>
+          <th class="right col-rss">RSS</th>
+          <th class="right col-vms">VMS</th>
+          <th class="nowrap col-cree">Créé</th>
+          <th class="col-cmdline">Cmdline</th>
+          <th class="col-action">Action</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="9" class="muted">Chargement…</td></tr>
+        <tr><td colspan="10" class="muted">Chargement…</td></tr>
       </tbody>
     </table>
   </section>
@@ -90,7 +108,7 @@
     }
     function renderRows(items, q, st) {
       if (!Array.isArray(items) || items.length === 0) {
-        return '<tr><td colspan="9" class="muted">Aucune donnée</td></tr>';
+        return '<tr><td colspan="10" class="muted">Aucune donnée</td></tr>';
       }
       q = (q||'').toLowerCase();
       var out = [];
@@ -102,20 +120,21 @@
 
         out.push(
           '<tr>'
-          + '<td class="right mono">' + esc(x.pid) + '</td>'
-          + '<td class="mono">' + esc(x.name||'') + '</td>'
-          + '<td class="nowrap"><span class="pill">' + esc(x.status||'') + '</span></td>'
-          + '<td>' + esc(x.username||'') + '</td>'
-          + '<td class="right mono">' + esc(x.threads||'') + '</td>'
-          + '<td class="right mono">' + esc(fmtBytes(x.memory_rss)) + '</td>'
-          + '<td class="right mono">' + esc(fmtBytes(x.memory_vms)) + '</td>'
-          + '<td class="nowrap mono">' + esc(fmtTimeMs(x.create_time)) + '</td>'
-          + '<td class="mono">' + esc(x.cmdline||'') + '</td>'
+          + '<td class="right mono col-pid">' + esc(x.pid) + '</td>'
+          + '<td class="mono col-nom">' + esc(x.name||'') + '</td>'
+          + '<td class="nowrap col-statut"><span class="pill">' + esc(x.status||'') + '</span></td>'
+          + '<td class="col-user">' + esc(x.username||'') + '</td>'
+          + '<td class="right mono col-threads">' + esc(x.threads||'') + '</td>'
+          + '<td class="right mono col-rss">' + esc(fmtBytes(x.memory_rss)) + '</td>'
+          + '<td class="right mono col-vms">' + esc(fmtBytes(x.memory_vms)) + '</td>'
+          + '<td class="nowrap mono col-cree">' + esc(fmtTimeMs(x.create_time)) + '</td>'
+          + '<td class="mono col-cmdline">' + esc(x.cmdline||'') + '</td>'
+          + '<td class="col-action"><button class="btn btn-danger btn-small" onclick="killProcess(' + esc(x.pid) + ')" title="Tuer le processus">Kill</button></td>'
           + '</tr>'
         );
       }
       if (out.length === 0) {
-        return '<tr><td colspan="9" class="muted">Aucun processus ne correspond aux filtres</td></tr>';
+        return '<tr><td colspan="10" class="muted">Aucun processus ne correspond aux filtres</td></tr>';
       }
       document.getElementById('count').textContent = out.length + ' éléments';
       return out.join('');
@@ -171,7 +190,35 @@
         applyFilters();
         document.getElementById('ts').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString();
       } catch (e) {
-        body.innerHTML = '<tr><td colspan="9" class="muted">Erreur: ' + esc(e.message) + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" class="muted">Erreur: ' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    async function killProcess(pid) {
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        alert('Veuillez sélectionner un agent');
+        return;
+      }
+      
+      if (!confirm('Voulez-vous vraiment tuer le processus ' + pid + ' ?')) {
+        return;
+      }
+      
+      try {
+        var res = await fetch('http://' + selectedAgent + '/procs/kill/' + pid, {
+          method: 'GET'
+        });
+        
+        if (res.ok) {
+          alert('Processus ' + pid + ' tué avec succès');
+          await load(); // Recharger la liste
+        } else {
+          alert('Erreur lors de l\'arrêt du processus: HTTP ' + res.status);
+        }
+      } catch (e) {
+        alert('Erreur de connexion: ' + e.message);
       }
     }
 
