@@ -49,8 +49,6 @@ func webprocskill(w http.ResponseWriter, req *http.Request) {
 		if err := p.Signal(syscall.SIGTERM); err != nil {
 			return err
 		}
-		// petite seconde pour laisser le process sortir proprement
-		// (optionnel; ici on essaye directement)
 		if err := p.Signal(syscall.SIGKILL); err != nil {
 			return err
 		}

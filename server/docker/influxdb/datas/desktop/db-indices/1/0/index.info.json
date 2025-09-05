@@ -326,11 +326,182 @@
       "chunk_time": 1757013000000000000,
       "min_time": 1757013004714500115,
       "max_time": 1757013598631485415
+    },
+    {
+      "id": 84,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-04/19-20/0000002392.parquet",
+      "size_bytes": 5034,
+      "row_count": 227,
+      "chunk_time": 1757013600000000000,
+      "min_time": 1757013600628575295,
+      "max_time": 1757014052632830303
+    },
+    {
+      "id": 86,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/09-50/0000002392.parquet",
+      "size_bytes": 5421,
+      "row_count": 264,
+      "chunk_time": 1757065800000000000,
+      "min_time": 1757065873345477038,
+      "max_time": 1757066398661121568
+    },
+    {
+      "id": 90,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-00/0000002992.parquet",
+      "size_bytes": 6101,
+      "row_count": 300,
+      "chunk_time": 1757066400000000000,
+      "min_time": 1757066400661166020,
+      "max_time": 1757066998661430337
+    },
+    {
+      "id": 98,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-10/0000003592.parquet",
+      "size_bytes": 5758,
+      "row_count": 300,
+      "chunk_time": 1757067000000000000,
+      "min_time": 1757067000660279275,
+      "max_time": 1757067598661780226
+    },
+    {
+      "id": 103,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-20/0000004192.parquet",
+      "size_bytes": 5300,
+      "row_count": 300,
+      "chunk_time": 1757067600000000000,
+      "min_time": 1757067600661417020,
+      "max_time": 1757068198663333948
+    },
+    {
+      "id": 111,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-30/0000004792.parquet",
+      "size_bytes": 5182,
+      "row_count": 300,
+      "chunk_time": 1757068200000000000,
+      "min_time": 1757068200660579356,
+      "max_time": 1757068798660424346
+    },
+    {
+      "id": 115,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-40/0000005392.parquet",
+      "size_bytes": 5865,
+      "row_count": 300,
+      "chunk_time": 1757068800000000000,
+      "min_time": 1757068800660945242,
+      "max_time": 1757069398660368625
+    },
+    {
+      "id": 126,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-00/0000006280.parquet",
+      "size_bytes": 4163,
+      "row_count": 144,
+      "chunk_time": 1757070000000000000,
+      "min_time": 1757070000660873166,
+      "max_time": 1757070286660918578
+    },
+    {
+      "id": 127,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/10-50/0000006280.parquet",
+      "size_bytes": 6283,
+      "row_count": 300,
+      "chunk_time": 1757069400000000000,
+      "min_time": 1757069400664259455,
+      "max_time": 1757069998662149467
+    },
+    {
+      "id": 132,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-20/0000007052.parquet",
+      "size_bytes": 6283,
+      "row_count": 430,
+      "chunk_time": 1757071200000000000,
+      "min_time": 1757071200661410860,
+      "max_time": 1757071756700402899
+    },
+    {
+      "id": 133,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-10/0000007052.parquet",
+      "size_bytes": 3749,
+      "row_count": 106,
+      "chunk_time": 1757070600000000000,
+      "min_time": 1757070984694874217,
+      "max_time": 1757071198660274395
+    },
+    {
+      "id": 144,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-30/0000007425.parquet",
+      "size_bytes": 6129,
+      "row_count": 373,
+      "chunk_time": 1757071800000000000,
+      "min_time": 1757072027396256554,
+      "max_time": 1757072398707826555
+    },
+    {
+      "id": 150,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-40/0000008024.parquet",
+      "size_bytes": 7763,
+      "row_count": 593,
+      "chunk_time": 1757072400000000000,
+      "min_time": 1757072400661601839,
+      "max_time": 1757072999712370054
+    },
+    {
+      "id": 157,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-50/0000008619.parquet",
+      "size_bytes": 7525,
+      "row_count": 531,
+      "chunk_time": 1757073000000000000,
+      "min_time": 1757073001661768404,
+      "max_time": 1757073599718707096
+    },
+    {
+      "id": 164,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-00/0000009219.parquet",
+      "size_bytes": 8041,
+      "row_count": 600,
+      "chunk_time": 1757073600000000000,
+      "min_time": 1757073600660279276,
+      "max_time": 1757074199714178664
+    },
+    {
+      "id": 171,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-10/0000009964.parquet",
+      "size_bytes": 8214,
+      "row_count": 600,
+      "chunk_time": 1757074200000000000,
+      "min_time": 1757074200662227919,
+      "max_time": 1757074799719236735
+    },
+    {
+      "id": 174,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-20/0000009964.parquet",
+      "size_bytes": 3929,
+      "row_count": 144,
+      "chunk_time": 1757074800000000000,
+      "min_time": 1757074801661675431,
+      "max_time": 1757074943747198761
+    },
+    {
+      "id": 181,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-30/0000010516.parquet",
+      "size_bytes": 8008,
+      "row_count": 552,
+      "chunk_time": 1757075400000000000,
+      "min_time": 1757075448760060460,
+      "max_time": 1757075998712474207
+    },
+    {
+      "id": 187,
+      "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-40/0000011116.parquet",
+      "size_bytes": 8317,
+      "row_count": 591,
+      "chunk_time": 1757076000000000000,
+      "min_time": 1757076000661288077,
+      "max_time": 1757076599711656088
     }
   ],
-  "latest_snapshot_sequence_number": 2,
-  "parquet_size_bytes": 120496,
-  "row_count": 1578,
+  "latest_snapshot_sequence_number": 17,
+  "parquet_size_bytes": 237561,
+  "row_count": 8533,
   "min_time": 1756925943426310653,
-  "max_time": 1757013598631485415
+  "max_time": 1757076599711656088
 }

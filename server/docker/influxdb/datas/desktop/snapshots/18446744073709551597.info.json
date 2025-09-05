@@ -1,0 +1,178 @@
+{
+  "version": "1",
+  "node_id": "desktop",
+  "next_file_id": 206,
+  "snapshot_sequence_number": 18,
+  "wal_file_sequence_number": 11828,
+  "catalog_sequence_number": 64,
+  "parquet_size_bytes": 290657,
+  "row_count": 20514,
+  "min_time": 1757076599711656088,
+  "max_time": 1757077310721209960,
+  "databases": [
+    [
+      1,
+      {
+        "tables": [
+          [
+            4,
+            [
+              {
+                "id": 192,
+                "path": "desktop/dbs/load-1/procs_count-4/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 5124,
+                "row_count": 347,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077200047599134,
+                "max_time": 1757077310034222676
+              },
+              {
+                "id": 196,
+                "path": "desktop/dbs/load-1/procs_count-4/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 17748,
+                "row_count": 1872,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076600066772553,
+                "max_time": 1757077199574962266
+              }
+            ]
+          ],
+          [
+            5,
+            [
+              {
+                "id": 193,
+                "path": "desktop/dbs/load-1/disk_usage-5/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 4669,
+                "row_count": 90,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077202934790698,
+                "max_time": 1757077307935246476
+              },
+              {
+                "id": 202,
+                "path": "desktop/dbs/load-1/disk_usage-5/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 5769,
+                "row_count": 480,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076602934741622,
+                "max_time": 1757077188343180876
+              }
+            ]
+          ],
+          [
+            3,
+            [
+              {
+                "id": 194,
+                "path": "desktop/dbs/load-1/cpu_percent-3/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 17641,
+                "row_count": 1736,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077200461609602,
+                "max_time": 1757077310524378448
+              },
+              {
+                "id": 205,
+                "path": "desktop/dbs/load-1/cpu_percent-3/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 87735,
+                "row_count": 9600,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076600462284116,
+                "max_time": 1757077199680908334
+              }
+            ]
+          ],
+          [
+            0,
+            [
+              {
+                "id": 195,
+                "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-40/0000011828.parquet",
+                "size_bytes": 2638,
+                "row_count": 1,
+                "chunk_time": 1757076000000000000,
+                "min_time": 1757076599711656088,
+                "max_time": 1757076599711656088
+              },
+              {
+                "id": 197,
+                "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 8660,
+                "row_count": 600,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076600661030442,
+                "max_time": 1757077199751336939
+              },
+              {
+                "id": 199,
+                "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 3801,
+                "row_count": 110,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077200661168408,
+                "max_time": 1757077310721182519
+              }
+            ]
+          ],
+          [
+            2,
+            [
+              {
+                "id": 198,
+                "path": "desktop/dbs/load-1/nic_rate-2/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 19035,
+                "row_count": 660,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077200661534938,
+                "max_time": 1757077310721209960
+              },
+              {
+                "id": 204,
+                "path": "desktop/dbs/load-1/nic_rate-2/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 82606,
+                "row_count": 3600,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076600661382357,
+                "max_time": 1757077198797643963
+              }
+            ]
+          ],
+          [
+            1,
+            [
+              {
+                "id": 200,
+                "path": "desktop/dbs/load-1/mem-1/2025-09-05/12-40/0000011828.parquet",
+                "size_bytes": 3570,
+                "row_count": 1,
+                "chunk_time": 1757076000000000000,
+                "min_time": 1757076599935396234,
+                "max_time": 1757076599935396234
+              },
+              {
+                "id": 201,
+                "path": "desktop/dbs/load-1/mem-1/2025-09-05/12-50/0000011828.parquet",
+                "size_bytes": 24275,
+                "row_count": 1200,
+                "chunk_time": 1757076600000000000,
+                "min_time": 1757076600306526928,
+                "max_time": 1757077199935000031
+              },
+              {
+                "id": 203,
+                "path": "desktop/dbs/load-1/mem-1/2025-09-05/13-00/0000011828.parquet",
+                "size_bytes": 7386,
+                "row_count": 217,
+                "chunk_time": 1757077200000000000,
+                "min_time": 1757077200307607223,
+                "max_time": 1757077310232402242
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  ],
+  "removed_files": []
+}
