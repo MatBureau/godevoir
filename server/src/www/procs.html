@@ -29,6 +29,8 @@
     <h1>Processus système</h1>
     <div class="muted">Source : <code>/procs</code> — colonnes : PID, Nom, Statut, Utilisateur, Threads, Mémoire (RSS/VMS), Créé, Cmdline</div>
     <div class="toolbar" style="margin-top:8px">
+      <a href="/html/index" class="btn" style="text-decoration:none">🏠 Accueil</a>
+      <label>Agent : <select id="agent-select"><option value="">Chargement...</option></select></label>
       <label>Filtrer : <input id="q" type="text" placeholder="nom, utilisateur, cmdline…"></label>
       <label>Statut :
         <select id="status">
@@ -120,11 +122,50 @@
     }
 
     var DATA = [];
+    var AGENTS = [];
+
+    async function loadAgents() {
+      try {
+        var res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        AGENTS = await res.json();
+        
+        var select = document.getElementById('agent-select');
+        select.innerHTML = '';
+        
+        AGENTS.forEach(function(agent) {
+          if (agent.status === 'online') {
+            var option = document.createElement('option');
+            option.value = agent.host;
+            option.textContent = agent.host;
+            select.appendChild(option);
+          }
+        });
+        
+        if (select.children.length === 0) {
+          select.innerHTML = '<option value="">Aucun agent disponible</option>';
+        } else {
+          select.value = select.children[0].value;
+          await load();
+        }
+      } catch (e) {
+        document.getElementById('agent-select').innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
     async function load() {
       var body = document.getElementById('tbody');
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        body.innerHTML = '<tr><td colspan="9" class="muted">Sélectionnez un agent</td></tr>';
+        return;
+      }
+      
       try {
-        const base = {{.ServerURL}};
-        var res = await fetch(base+'/procs', {headers:{'Accept':'application/json'}});
+        var res = await fetch('/api/agent/data?host=' + encodeURIComponent(selectedAgent) + '&endpoint=procs', {
+          headers:{'Accept':'application/json'}
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         DATA = await res.json();
         applyFilters();
@@ -143,6 +184,7 @@
     // Filtres live
     document.getElementById('q').addEventListener('input', applyFilters);
     document.getElementById('status').addEventListener('change', applyFilters);
+    document.getElementById('agent-select').addEventListener('change', load);
 
     // Bouton Rafraîchir
     document.getElementById('refresh').addEventListener('click', async function(){
@@ -155,7 +197,7 @@
     });
 
     // Première charge
-    load();
+    loadAgents();
 
   </script>
 

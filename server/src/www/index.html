@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Système de Contrôle - Accueil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:canvas; color:canvastext; }
+    .container { max-width:1200px; margin:0 auto; }
+    .header { text-align:center; margin-bottom:40px; }
+    .header h1 { margin:0 0 8px; font-size:2rem; }
+    .header .subtitle { opacity:.75; font-size:1.1rem; }
+    
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin:40px 0; }
+    .card { 
+      padding:24px; 
+      border:1px solid color-mix(in oklab, canvastext 15%, transparent); 
+      border-radius:16px; 
+      background:color-mix(in oklab, canvas 92%, canvastext 0%); 
+      box-shadow:0 1px 8px color-mix(in oklab, canvastext 10%, transparent);
+      transition:transform .2s ease, box-shadow .2s ease;
+      text-decoration:none;
+      color:inherit;
+    }
+    .card:hover { 
+      transform:translateY(-2px); 
+      box-shadow:0 4px 16px color-mix(in oklab, canvastext 15%, transparent); 
+    }
+    .card h2 { margin:0 0 8px; font-size:1.3rem; color:dodgerblue; }
+    .card .desc { opacity:.8; font-size:.95rem; line-height:1.5; }
+    .card .endpoint { 
+      margin-top:12px; 
+      padding:4px 8px; 
+      background:color-mix(in oklab, canvas 85%, canvastext 0%); 
+      border-radius:6px; 
+      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; 
+      font-size:.85rem; 
+      opacity:.7;
+    }
+    
+    .status-section { margin:40px 0; text-align:center; }
+    .status-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:20px; }
+    .status-card { 
+      padding:16px; 
+      border:1px solid color-mix(in oklab, canvastext 15%, transparent); 
+      border-radius:12px; 
+      background:color-mix(in oklab, canvas 96%, canvastext 0%); 
+    }
+    .status-title { font-size:.9rem; opacity:.8; margin-bottom:8px; }
+    .status-value { font-size:1.5rem; font-weight:600; }
+    .status-online { color:#37b24d; }
+    .status-offline { color:#e03131; }
+    
+    .footer { margin-top:60px; text-align:center; opacity:.6; font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🖥️ Système de Contrôle</h1>
+      <div class="subtitle">Surveillance et monitoring des agents système</div>
+    </div>
+
+    <div class="status-section">
+      <h2>État des Agents</h2>
+      <div class="status-grid" id="agent-status">
+        <div class="status-card">
+          <div class="status-title">Agents en ligne</div>
+          <div class="status-value status-online" id="online-count">-</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Agents hors ligne</div>
+          <div class="status-value status-offline" id="offline-count">-</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Total agents</div>
+          <div class="status-value" id="total-count">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <a href="/html/cpus" class="card">
+        <h2>🔥 Informations CPU</h2>
+        <div class="desc">Détails sur les processeurs : modèle, fréquence, cache, flags et caractéristiques techniques</div>
+        <div class="endpoint">/cpu</div>
+      </a>
+
+      <a href="/html/memory" class="card">
+        <h2>💾 Mémoire Système</h2>
+        <div class="desc">Utilisation RAM et SWAP en temps réel avec barres de progression et détails techniques</div>
+        <div class="endpoint">/mem</div>
+      </a>
+
+      <a href="/html/load" class="card">
+        <h2>📊 Charge Système</h2>
+        <div class="desc">Load average (1, 5, 15 min) et charge CPU par cœur avec jauges visuelles</div>
+        <div class="endpoint">/load + /cpu/load</div>
+      </a>
+
+      <a href="/html/procs" class="card">
+        <h2>⚙️ Processus</h2>
+        <div class="desc">Liste complète des processus avec PID, utilisateur, mémoire, et ligne de commande</div>
+        <div class="endpoint">/procs</div>
+      </a>
+
+      <a href="/html/nics" class="card">
+        <h2>🌐 Interfaces Réseau</h2>
+        <div class="desc">Débits réseau en temps réel (Rx/Tx) pour toutes les interfaces actives</div>
+        <div class="endpoint">/nics</div>
+      </a>
+
+      <a href="/html/disks" class="card">
+        <h2>💿 Stockage</h2>
+        <div class="desc">Volumes montés, systèmes de fichiers et options de montage</div>
+        <div class="endpoint">/disks</div>
+      </a>
+
+      <a href="/html/agents" class="card">
+        <h2>🤖 Gestion Agents</h2>
+        <div class="desc">Administration et surveillance des agents connectés au système</div>
+        <div class="endpoint">/api/agents</div>
+      </a>
+    </div>
+
+    <div class="footer">
+      Système de contrôle • Rafraîchissement automatique des données
+    </div>
+  </div>
+
+  <script>
+    async function loadAgentStatus() {
+      try {
+        const res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const agents = await res.json();
+        
+        const online = agents.filter(a => a.status === 'online').length;
+        const offline = agents.filter(a => a.status === 'offline').length;
+        const total = agents.length;
+        
+        document.getElementById('online-count').textContent = online;
+        document.getElementById('offline-count').textContent = offline;
+        document.getElementById('total-count').textContent = total;
+      } catch (e) {
+        document.getElementById('online-count').textContent = '?';
+        document.getElementById('offline-count').textContent = '?';
+        document.getElementById('total-count').textContent = '?';
+      }
+    }
+    
+    loadAgentStatus();
+    setInterval(loadAgentStatus, 5000);
+  </script>
+</body>
+</html>

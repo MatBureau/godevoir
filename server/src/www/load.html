@@ -32,6 +32,10 @@
     .fill[data-level="high"] { background: linear-gradient(90deg, #e03131, #ff6b6b); }
 
     .val { text-align:right; font-variant-numeric: tabular-nums; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    select { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
+    .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
+    .btn[disabled]{ opacity:.6; cursor:default; }
   </style>
 </head>
 <body>
@@ -40,6 +44,11 @@
   <section class="card">
     <h1>Charge système (load average)</h1>
     <div class="muted">Source : <code>/load</code> — jauges 0 → 4.0</div>
+    <div class="toolbar" style="margin-top:8px">
+      <a href="/html/index" class="btn" style="text-decoration:none">🏠 Accueil</a>
+      <label>Agent : <select id="agent-select"><option value="">Chargement...</option></select></label>
+      <button id="refresh" class="btn" type="button">Rafraîchir</button>
+    </div>
   </section>
 
   <section class="card" aria-live="polite">
@@ -85,10 +94,49 @@
       return "high";
     }
 
-    async function loadAvg() {
+    var AGENTS = [];
+
+    async function loadAgents() {
       try {
-        const base = {{.ServerURL}};
-        const res = await fetch(base+'/load', { headers: { 'Accept': 'application/json' } });
+        var res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        AGENTS = await res.json();
+        
+        var select = document.getElementById('agent-select');
+        select.innerHTML = '';
+        
+        AGENTS.forEach(function(agent) {
+          if (agent.status === 'online') {
+            var option = document.createElement('option');
+            option.value = agent.host;
+            option.textContent = agent.host;
+            select.appendChild(option);
+          }
+        });
+        
+        if (select.children.length === 0) {
+          select.innerHTML = '<option value="">Aucun agent disponible</option>';
+        } else {
+          select.value = select.children[0].value;
+          await loadAvg();
+        }
+      } catch (e) {
+        document.getElementById('agent-select').innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
+    async function loadAvg() {
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        ['f1','f5','f15'].forEach(id => { const el = document.getElementById(id); el.style.width='0%'; el.setAttribute('data-level','low'); });
+        return;
+      }
+      
+      try {
+        var res = await fetch('/api/agent/data?host=' + encodeURIComponent(selectedAgent) + '&endpoint=load', {
+          headers:{'Accept':'application/json'}
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const d = await res.json(); // {load1, load5, load15}
 
@@ -140,9 +188,24 @@
     }
 
     async function loadCpu() {
-      try {        
-        const base = {{.ServerURL}};
-        const res = await fetch(base+'/cpu/load', { headers: { 'Accept': 'application/json' } });
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        const wrap = document.getElementById('cpuRows');
+        const n = +(wrap.dataset.count || 0);
+        for (let i = 0; i < n; i++) {
+          const f = document.getElementById('fc-' + i);
+          const t = document.getElementById('vc-' + i);
+          if (f) { f.style.width = '0%'; f.setAttribute('data-level','low'); }
+          if (t) { t.textContent = '0.00'; }
+        }
+        return;
+      }
+      
+      try {
+        var res = await fetch('/api/agent/data?host=' + encodeURIComponent(selectedAgent) + '&endpoint=cpu/load', {
+          headers:{'Accept':'application/json'}
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const arr = await res.json(); // ex: [1.01, 2.0, 0, 1.01]
 
@@ -171,9 +234,20 @@
       }
     }
 
+    // Event listeners
+    document.getElementById('agent-select').addEventListener('change', function() {
+      loadAvg();
+      loadCpu();
+    });
+    document.getElementById('refresh').addEventListener('click', async function(){
+      var btn = this, prev = btn.textContent;
+      btn.disabled = true; btn.textContent = '…';
+      try { await loadAvg(); await loadCpu(); }
+      finally { btn.disabled = false; btn.textContent = prev; }
+    });
+
     // Première charge
-    loadAvg();
-    loadCpu();
+    loadAgents();
     // Rafraîchissement à 250 ms
     setInterval(function(){ loadAvg(); loadCpu(); }, 250);
   </script>

@@ -18,6 +18,7 @@
     .nowrap { white-space:nowrap; }
     .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     input[type="text"] { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
+    select { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
     .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
     .btn[disabled]{ opacity:.6; cursor:default; }
     .pill { display:inline-block; padding:.12rem .45rem; border-radius:.75rem; border:1px solid color-mix(in oklab, canvastext 25%, transparent); font-size:.8rem; margin:2px; }
@@ -30,6 +31,8 @@
     <h1>Informations CPU</h1>
     <div class="muted">Source : <code>/cpu</code> — colonnes : CPU, Vendor, CoreID, Cores, Model, MHz, Cache, Flags</div>
     <div class="toolbar" style="margin-top:8px">
+      <a href="/html/index" class="btn" style="text-decoration:none">🏠 Accueil</a>
+      <label>Agent : <select id="agent-select"><option value="">Chargement...</option></select></label>
       <label>Filtrer : <input id="q" type="text" placeholder="vendor, coreId, model, flag…"></label>
       <button id="refresh" class="btn" type="button">Rafraîchir</button>
       <span id="ts" class="muted"></span>
@@ -99,11 +102,51 @@
     }
 
     var DATA = [];
+    var AGENTS = [];
+
+    async function loadAgents() {
+      try {
+        var res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        AGENTS = await res.json();
+        
+        var select = document.getElementById('agent-select');
+        select.innerHTML = '';
+        
+        AGENTS.forEach(function(agent) {
+          if (agent.status === 'online') {
+            var option = document.createElement('option');
+            option.value = agent.host;
+            option.textContent = agent.host;
+            select.appendChild(option);
+          }
+        });
+        
+        if (select.children.length === 0) {
+          select.innerHTML = '<option value="">Aucun agent disponible</option>';
+        } else {
+          // Sélectionner le premier agent par défaut
+          select.value = select.children[0].value;
+          await load();
+        }
+      } catch (e) {
+        document.getElementById('agent-select').innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
     async function load() {
       var body = document.getElementById('tbody');
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        body.innerHTML = '<tr><td colspan="8" class="muted">Sélectionnez un agent</td></tr>';
+        return;
+      }
+      
       try {
-        const base = {{.ServerURL}};
-        var res = await fetch(base+'/cpu', {headers:{'Accept':'application/json'}});
+        var res = await fetch('/api/agent/data?host=' + encodeURIComponent(selectedAgent) + '&endpoint=cpu', {
+          headers:{'Accept':'application/json'}
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         DATA = await res.json();
         applyFilter();
@@ -119,6 +162,7 @@
     }
 
     document.getElementById('q').addEventListener('input', applyFilter);
+    document.getElementById('agent-select').addEventListener('change', load);
     document.getElementById('refresh').addEventListener('click', async function(){
       var btn = this, prev = btn.textContent;
       btn.disabled = true; btn.textContent = '…';
@@ -126,7 +170,7 @@
       finally { btn.disabled = false; btn.textContent = prev; }
     });
 
-    load();
+    loadAgents();
     // setInterval(load, 5000); // optionnel
   </script>
 
