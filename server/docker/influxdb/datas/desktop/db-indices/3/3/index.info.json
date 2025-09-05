@@ -11,11 +11,47 @@
       "chunk_time": 1756997400000000000,
       "min_time": 1756997520132780389,
       "max_time": 1756997760049761596
+    },
+    {
+      "id": 39,
+      "path": "desktop/dbs/metrics-3/system_swap-3/2025-09-04/17-50/0000001638.parquet",
+      "size_bytes": 4290,
+      "row_count": 10,
+      "chunk_time": 1757008200000000000,
+      "min_time": 1757008200035524119,
+      "max_time": 1757008740052571245
+    },
+    {
+      "id": 54,
+      "path": "desktop/dbs/metrics-3/system_swap-3/2025-09-04/18-00/0000001638.parquet",
+      "size_bytes": 4056,
+      "row_count": 4,
+      "chunk_time": 1757008800000000000,
+      "min_time": 1757008800030342208,
+      "max_time": 1757008980050184773
+    },
+    {
+      "id": 76,
+      "path": "desktop/dbs/metrics-3/system_swap-3/2025-09-04/17-30/0000001638.parquet",
+      "size_bytes": 3942,
+      "row_count": 2,
+      "chunk_time": 1757007000000000000,
+      "min_time": 1757007480107583401,
+      "max_time": 1757007540051887674
+    },
+    {
+      "id": 80,
+      "path": "desktop/dbs/metrics-3/system_swap-3/2025-09-04/17-40/0000001638.parquet",
+      "size_bytes": 4251,
+      "row_count": 10,
+      "chunk_time": 1757007600000000000,
+      "min_time": 1757007600034024516,
+      "max_time": 1757008140035312135
     }
   ],
-  "latest_snapshot_sequence_number": 1,
-  "parquet_size_bytes": 4049,
-  "row_count": 5,
+  "latest_snapshot_sequence_number": 2,
+  "parquet_size_bytes": 20588,
+  "row_count": 31,
   "min_time": 1756997520132780389,
-  "max_time": 1756997760049761596
+  "max_time": 1757008980050184773
 }

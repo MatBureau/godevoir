@@ -1,11 +1,14 @@
 package main
 
 import (
+	"client/moninfluxdb"
 	"log"
 	"time"
+
+	"github.com/InfluxCommunity/influxdb3-go/v2/influxdb3"
 )
 
-func goProcs() {
+func goProcs(client *influxdb3.Client) {
 	ticker := time.NewTicker(2000 * time.Millisecond)
 	defer ticker.Stop()
 	for range ticker.C {
@@ -16,6 +19,8 @@ func goProcs() {
 			return
 		}
 		Datas.Procs = out
+		_ = moninfluxdb.WriteProcsCount(client, ServerURL+"/procs")
+
 		LogMessage("goroutine: goProcs")
 	}
 }

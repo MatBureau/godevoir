@@ -8,13 +8,14 @@ import (
 )
 
 type AllDatas struct {
-	Load    *load.AvgStat
-	CPU     *[]cpu.InfoStat
-	CPULoad *[]float64
-	Parts   *[]disk.PartitionStat
-	Procs   *[]ProcDTO
-	Nics    *[]NicRate
-	Mem     *mem.VirtualMemoryStat
+	Load      *load.AvgStat
+	CPU       *[]cpu.InfoStat
+	CPULoad   *[]float64
+	Parts     *[]disk.PartitionStat
+	Procs     *[]ProcDTO
+	Nics      *[]NicRate
+	Mem       *mem.VirtualMemoryStat
+	DiskUsage *[]DiskUsageDTO
 }
 
 var Datas AllDatas
