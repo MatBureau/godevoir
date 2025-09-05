@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const DBHost string = "http://localhost:8181"
+const DBHost string = "http://162.19.228.206:8181"
 const DBName string = "load"
 const DBToken string = "apiv3_9rdZKWDNT9DcuIli9W6R9ePr9KpeRXTkWMktG_1B5r504DRNMsYviUUz5107Hq1K9C4xmIvJDo7YayM1nd_Wsg"
 const ServerURL string = "http://162.19.228.206:8080"
