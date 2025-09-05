@@ -11,11 +11,47 @@
       "chunk_time": 1756997400000000000,
       "min_time": 1756997520132780389,
       "max_time": 1756997760049761596
+    },
+    {
+      "id": 40,
+      "path": "desktop/dbs/metrics-3/system_network-8/2025-09-04/18-00/0000001638.parquet",
+      "size_bytes": 5847,
+      "row_count": 24,
+      "chunk_time": 1757008800000000000,
+      "min_time": 1757008800030342208,
+      "max_time": 1757008980050184773
+    },
+    {
+      "id": 62,
+      "path": "desktop/dbs/metrics-3/system_network-8/2025-09-04/17-30/0000001638.parquet",
+      "size_bytes": 5747,
+      "row_count": 12,
+      "chunk_time": 1757007000000000000,
+      "min_time": 1757007480107583401,
+      "max_time": 1757007540051887674
+    },
+    {
+      "id": 69,
+      "path": "desktop/dbs/metrics-3/system_network-8/2025-09-04/17-40/0000001638.parquet",
+      "size_bytes": 6214,
+      "row_count": 60,
+      "chunk_time": 1757007600000000000,
+      "min_time": 1757007600034024516,
+      "max_time": 1757008140035312135
+    },
+    {
+      "id": 70,
+      "path": "desktop/dbs/metrics-3/system_network-8/2025-09-04/17-50/0000001638.parquet",
+      "size_bytes": 6238,
+      "row_count": 60,
+      "chunk_time": 1757008200000000000,
+      "min_time": 1757008200035524119,
+      "max_time": 1757008740052571245
     }
   ],
-  "latest_snapshot_sequence_number": 1,
-  "parquet_size_bytes": 6044,
-  "row_count": 30,
+  "latest_snapshot_sequence_number": 2,
+  "parquet_size_bytes": 30090,
+  "row_count": 186,
   "min_time": 1756997520132780389,
-  "max_time": 1756997760049761596
+  "max_time": 1757008980050184773
 }

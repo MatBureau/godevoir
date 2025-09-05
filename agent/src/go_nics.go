@@ -1,10 +1,13 @@
 package main
 
 import (
+	"client/moninfluxdb"
 	"time"
+
+	"github.com/InfluxCommunity/influxdb3-go/v2/influxdb3"
 )
 
-func goNics() {
+func goNics(client *influxdb3.Client) {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	for range ticker.C {
@@ -14,6 +17,8 @@ func goNics() {
 			continue
 		}
 		Datas.Nics = &rates
+		_ = moninfluxdb.WriteNics(client, ServerURL+"/nics")
+
 		LogMessage("goroutine: goNics")
 	}
 }

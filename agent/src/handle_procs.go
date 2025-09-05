@@ -41,6 +41,7 @@ func webprocskill(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// D’abord TERM, puis KILL si nécessaire (Unix) ; Windows: Kill().
+	fmt.Println("OS détecté :", (runtime.GOOS))
 	kill := func() error {
 		if runtime.GOOS == "windows" {
 			return p.Kill()
