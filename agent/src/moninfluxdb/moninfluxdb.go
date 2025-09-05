@@ -160,7 +160,7 @@ func WriteNics(client *influxdb3.Client, url string) error {
 }
 
 type ProcDTO struct {
-	Status string `json:"status"` // "R","S","T","Z", etc. (première lettre en maj)
+	Status string `json:"status"`
 }
 
 func WriteProcsCount(client *influxdb3.Client, url string) error {
