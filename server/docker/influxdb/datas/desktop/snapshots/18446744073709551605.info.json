@@ -1,0 +1,160 @@
+{
+  "version": "1",
+  "node_id": "desktop",
+  "next_file_id": 144,
+  "snapshot_sequence_number": 10,
+  "wal_file_sequence_number": 7052,
+  "catalog_sequence_number": 62,
+  "parquet_size_bytes": 241684,
+  "row_count": 15459,
+  "min_time": 1757070984193770613,
+  "max_time": 1757071757701794954,
+  "databases": [
+    [
+      1,
+      {
+        "tables": [
+          [
+            0,
+            [
+              {
+                "id": 132,
+                "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 6283,
+                "row_count": 430,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071200661410860,
+                "max_time": 1757071756700402899
+              },
+              {
+                "id": 133,
+                "path": "desktop/dbs/load-1/load_avg-0/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 3749,
+                "row_count": 106,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070984694874217,
+                "max_time": 1757071198660274395
+              }
+            ]
+          ],
+          [
+            5,
+            [
+              {
+                "id": 134,
+                "path": "desktop/dbs/load-1/disk_usage-5/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 5629,
+                "row_count": 348,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071202508313573,
+                "max_time": 1757071757508034911
+              },
+              {
+                "id": 138,
+                "path": "desktop/dbs/load-1/disk_usage-5/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 4758,
+                "row_count": 78,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070998193761654,
+                "max_time": 1757071187507799401
+              }
+            ]
+          ],
+          [
+            4,
+            [
+              {
+                "id": 135,
+                "path": "desktop/dbs/load-1/procs_count-4/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 13524,
+                "row_count": 1340,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071201628219495,
+                "max_time": 1757071757606275814
+              },
+              {
+                "id": 137,
+                "path": "desktop/dbs/load-1/procs_count-4/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 5044,
+                "row_count": 333,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070985297196405,
+                "max_time": 1757071199602565518
+              }
+            ]
+          ],
+          [
+            3,
+            [
+              {
+                "id": 136,
+                "path": "desktop/dbs/load-1/cpu_percent-3/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 17019,
+                "row_count": 1680,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070984796580735,
+                "max_time": 1757071199461848074
+              },
+              {
+                "id": 143,
+                "path": "desktop/dbs/load-1/cpu_percent-3/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 62225,
+                "row_count": 6856,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071200461570577,
+                "max_time": 1757071757500613547
+              }
+            ]
+          ],
+          [
+            1,
+            [
+              {
+                "id": 139,
+                "path": "desktop/dbs/load-1/mem-1/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 20328,
+                "row_count": 859,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071200507483604,
+                "max_time": 1757071757508247861
+              },
+              {
+                "id": 141,
+                "path": "desktop/dbs/load-1/mem-1/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 8736,
+                "row_count": 213,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070984193770613,
+                "max_time": 1757071199507626967
+              }
+            ]
+          ],
+          [
+            2,
+            [
+              {
+                "id": 140,
+                "path": "desktop/dbs/load-1/nic_rate-2/2025-09-05/11-10/0000007052.parquet",
+                "size_bytes": 24893,
+                "row_count": 636,
+                "chunk_time": 1757070600000000000,
+                "min_time": 1757070984695381185,
+                "max_time": 1757071198660773753
+              },
+              {
+                "id": 142,
+                "path": "desktop/dbs/load-1/nic_rate-2/2025-09-05/11-20/0000007052.parquet",
+                "size_bytes": 69496,
+                "row_count": 2580,
+                "chunk_time": 1757071200000000000,
+                "min_time": 1757071200661644615,
+                "max_time": 1757071757701794954
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  ],
+  "removed_files": []
+}
