@@ -34,6 +34,7 @@
     <h1>Agents distribués</h1>
     <div class="muted">Vue d'ensemble des agents déployés sur les serveurs distants</div>
     <div class="toolbar" style="margin-top:8px">
+      <a href="/html/index" class="btn" style="text-decoration:none">🏠 Accueil</a>
       <button id="refresh" class="btn" type="button">Rafraîchir</button>
       <span id="count" class="pill">0 agents</span>
       <span id="ts" class="muted"></span>
@@ -87,7 +88,7 @@
     
     function renderAgent(agent) {
       var statusClass = agent.status === 'online' ? 'status-online' : 'status-offline';
-      var errorHtml = agent.error ? '<div class="error-msg">Erreur: ' + esc(agent.error) + '</div>' : '';
+      var errorHtml = agent.error ? '<div class="error-msg">Agent injoignable</div>' : '';
       
       var metricsHtml = '';
       if (agent.status === 'online') {

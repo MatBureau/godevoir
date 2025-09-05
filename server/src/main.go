@@ -18,6 +18,8 @@ var AgentHosts = []string{
 //var client *influxdb3.Client
 
 func main() {
+	// Routes pour les pages HTML
+	http.HandleFunc("GET /html/index", htmlindex)
 	http.HandleFunc("GET /html/nics", htmlnics)
 	http.HandleFunc("GET /html/disks", htmldisks)
 	http.HandleFunc("GET /html/load", htmlload)
@@ -25,7 +27,11 @@ func main() {
 	http.HandleFunc("GET /html/cpus", htmlcpus)
 	http.HandleFunc("GET /html/memory", htmlmem)
 	http.HandleFunc("GET /html/agents", htmlagents)
+	
+	// Routes API
 	http.HandleFunc("GET /api/agents", apiagentstatus)
+	http.HandleFunc("GET /api/agent/data", apiagentdata)
+	
 	fmt.Println("Serveur :9090")
 	http.ListenAndServe(":9090", nil)
 }

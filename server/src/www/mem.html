@@ -30,6 +30,7 @@
     .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, dodgerblue 40%, transparent); background: color-mix(in oklab, dodgerblue 35%, canvas); color:white; cursor:pointer; }
     .btn[disabled]{ opacity:.6; cursor:default; }
+    select { padding:6px 8px; border-radius:10px; border:1px solid color-mix(in oklab, canvastext 25%, transparent); background: color-mix(in oklab, canvas 95%, canvastext 0%); color:inherit; }
   </style>
 </head>
 <body>
@@ -38,6 +39,8 @@
     <h1>Mémoire système</h1>
     <div class="muted">Source : <code>/mem</code> — RAM & SWAP en temps quasi-réel</div>
     <div class="toolbar" style="margin-top:8px">
+      <a href="/html/index" class="btn" style="text-decoration:none">🏠 Accueil</a>
+      <label>Agent : <select id="agent-select"><option value="">Chargement...</option></select></label>
       <button id="refresh" class="btn" type="button">Rafraîchir</button>
       <span id="ts" class="muted"></span>
     </div>
@@ -83,6 +86,37 @@
       return '<div class="kv"><div class="k">'+esc(key)+'</div><div class="v">'+esc(val)+'</div></div>';
     }
 
+    var AGENTS = [];
+
+    async function loadAgents() {
+      try {
+        var res = await fetch('/api/agents', {headers:{'Accept':'application/json'}});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        AGENTS = await res.json();
+        
+        var select = document.getElementById('agent-select');
+        select.innerHTML = '';
+        
+        AGENTS.forEach(function(agent) {
+          if (agent.status === 'online') {
+            var option = document.createElement('option');
+            option.value = agent.host;
+            option.textContent = agent.host;
+            select.appendChild(option);
+          }
+        });
+        
+        if (select.children.length === 0) {
+          select.innerHTML = '<option value="">Aucun agent disponible</option>';
+        } else {
+          select.value = select.children[0].value;
+          await load();
+        }
+      } catch (e) {
+        document.getElementById('agent-select').innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
     async function load() {
       const ts = document.getElementById('ts');
       const ramFill = document.getElementById('ramFill');
@@ -90,10 +124,17 @@
       const ramPct = document.getElementById('ramPct');
       const swapPct = document.getElementById('swapPct');
       const summary = document.getElementById('summary');
+      var selectedAgent = document.getElementById('agent-select').value;
+      
+      if (!selectedAgent) {
+        summary.innerHTML = '<div class="kv"><div class="k">Agent</div><div class="v">Sélectionnez un agent</div></div>';
+        return;
+      }
 
       try {
-        const base = {{.ServerURL}};
-        const res = await fetch(base+'/mem', { headers: { 'Accept': 'application/json' } });
+        var res = await fetch('/api/agent/data?host=' + encodeURIComponent(selectedAgent) + '&endpoint=mem', {
+          headers:{'Accept':'application/json'}
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const m = await res.json();
 
@@ -140,7 +181,8 @@
       }
     }
 
-    // Bouton
+    // Bouton et sélecteur
+    document.getElementById('agent-select').addEventListener('change', load);
     document.getElementById('refresh').addEventListener('click', async function(){
       const btn = this, prev = btn.textContent;
       btn.disabled = true; btn.textContent = '…';
@@ -148,7 +190,7 @@
       finally { btn.disabled = false; btn.textContent = prev; }
     });
 
-    load();
+    loadAgents();
     setInterval(load, 2000); // optionnel
   </script>
 

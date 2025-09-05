@@ -104,6 +104,11 @@ func htmlagents(w http.ResponseWriter, req *http.Request) {
 	log.Println("/html/agents")
 }
 
+func htmlindex(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "www/index.html")
+	log.Println("/html/index")
+}
+
 // Structure pour représenter le statut d'un agent
 type AgentStatus struct {
 	Host     string    `json:"host"`
@@ -213,4 +218,45 @@ func checkAgentStatus(host string) AgentStatus {
 	}
 	
 	return agent
+}
+
+// API pour récupérer les données d'un agent spécifique
+func apiagentdata(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type")
+	
+	host := req.URL.Query().Get("host")
+	endpoint := req.URL.Query().Get("endpoint") // cpu, mem, load, procs, etc.
+	
+	if host == "" || endpoint == "" {
+		http.Error(w, "Paramètres host et endpoint requis", 400)
+		return
+	}
+	
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get("http://" + host + "/" + endpoint)
+	if err != nil {
+		http.Error(w, "Agent injoignable", 502)
+		return
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != 200 {
+		http.Error(w, fmt.Sprintf("Agent erreur HTTP %d", resp.StatusCode), 502)
+		return
+	}
+	
+	// Relayer la réponse directement
+	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+	w.WriteHeader(resp.StatusCode)
+	
+	var data any
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		http.Error(w, "Erreur parsing JSON", 502)
+		return
+	}
+	
+	json.NewEncoder(w).Encode(data)
 }
